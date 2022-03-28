@@ -109,7 +109,35 @@ resultsSearch <- GeoLiftPower.search(data = GeoTestData_PreTest,
                                      fixed_effects = TRUE,
                                      ProgressBar = TRUE)
                                      
-#2.7 MDE (Minimo effetto rilevabile)
+#2.7 Quanto spendere per un test, quanto deve durare, qual è il cost per incremental conversion
+#inserisci la variabile cpic se hai un valore medio di quanto sei disposto a spendere per un'incremental conversion
+#inserisci la variabile include_markets= c("") con il nome della regione o della città che vuoi includere per forza nel gruppo
+#inserisci la variabile exclude_markets= c("") con il nome della regione o della città che vuoi escludere per forza nel gruppo
+#la variabile budget può essere omessa oppure inserisci il budget che sei disposto a spendere per il test
+#treatment_periods è quanto durerà il tuo test, puoi inserire due valori come in questo caso se non sei sicuro della durata
+
+MarketSelections <- GeoLiftMarketSelection(data = GeoTestData_PreTest,
+                                          treatment_periods = c(10,15),
+                                          N = c(2,3,4,5),
+                                          Y_id = "Y",
+                                          location_id = "location",
+                                          time_id = "time",
+                                          effect_size = seq(-0.25, 0.25, 0.05),
+                                          lookback_window = 1, 
+                                          include_markets = c("tuscany"),
+                                          exclude_markets = c("liguria"),
+                                          cpic = 7.50,
+                                          budget = 1000,
+                                          alpha = 0.1,
+                                          Correlations = TRUE,
+                                          fixed_effects = TRUE)
+
+#visualizza il grafico del tuo modello Geolift e un summary
+#come marketid devi inserire quello che troverai dalla parte 2.6
+plot(MarketSelections, market_ID = 2, print_summary = TRUE)
+
+
+#2.8 MDE (Minimo effetto rilevabile)
 resultsFind <- GeoLiftPowerFinder(data = GeoTestData_PreTest,
                                   treatment_periods = c(10,15), #two possible test lenghts
                                   N = c(2,3,4),
