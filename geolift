@@ -81,6 +81,7 @@ GeoPlot(GeoTestData_PreTest,
 #alpha is the significance level. Se è 0.1 significa che siamo confident al 90% del risultato di questo test group
 #power is the probability di avere un reale cambiamento statisticamente significante (by default 0.8)
 #per determinare il numero di geos da inserire devi avere un high average power and low L2 imbalance
+#non ho usato horizon come usa da tutorial perché, da risposta di Arturo "sarà deprecated con GeoLift 4.0.0 e al suo posto va usata lookback_window"
 
 resultsNum <- NumberLocations(data = GeoTestData_PreTest,
                               Y_id = "Y",
