@@ -1,0 +1,135 @@
+##1 install devtools and ausgynth and GeoLift
+install.packages("devtools", repos='http://cran.us.r-project.org')
+devtools::install_github("ebenmichael/augsynth")
+devtools::install_github("facebookincubator/GeoLift")
+
+#1.2. install other packages
+install.packages(c("tidyverse", "ggplot2", "plotly", "readr","lubridate", "googlesheets4", "knitr", "gsynth","dplyr","doParallel", "MarketMatching"))
+
+#1.3 load all the packages needed
+library(tidyverse)
+library(ggplot2)
+library(plotly)
+library(readr)
+library(lubridate)
+library(googlesheets4)
+library(knitr)
+library(GeoLift)
+library(augsynth)
+library(gsynth)
+library(GeoLift)
+library(dplyr)
+library(doParallel)
+library(foreach)
+library(MarketMatching)
+
+#1.4 load this package 
+packageurl <- "https://cran.r-project.org/src/contrib/Archive/tidyr/tidyr_1.1.4.tar.gz"
+install.packages(packageurl, repos=NULL, type="source")
+
+#------2. pre-test power analysis------
+
+# in this section we will:
+#   1. define how many markets we need to include in the test group 
+#   2. select the markets for the test group
+#   3. select the MDE of the test
+#   4. estimate the best duration of the test 
+
+#2.1 import data from your google sheet
+#stai attento che ogni città abbia un valore per ogni data. Se per esempio Roma non comparirà per 5 date quella città non verrà considerata. 
+#per far funzionare il codice imposta un value 0 dove in realtà non abbiamo transazioni in quella città per quella data
+#Dataset Spedire con 9 Regioni
+
+GeoLift_PreTest<- read_sheet('https://docs.google.com/spreadsheets/d/1_QpZZfsjqkBlgyOkiWEQ45pbhEuXQg5eCxaI5AGDWGI/edit?usp=sharing')
+
+#2.2 read the data into the proper data.frame format needed 
+
+GeoTestData_PreTest <- GeoDataRead(data = GeoLift_PreTest,
+                                    date_id = "date",
+                                    location_id = "Region",
+                                    Y_id = "transactions",
+                                    format = "yyyy-mm-dd",
+                                    summary = TRUE)
+                                    
+##################################
+#####       Summary       #####
+##################################
+
+* Raw Number of Locations: 9
+* Time Periods: 129
+* Final Number of Locations (Complete): 9
+
+> head(GeoTestData_PreTest)
+
+  location time  Y
+1 campania    1 38
+2 campania    2  8
+3 campania    3 30
+4 campania    4 31
+5 campania    5 42
+6 campania    6 35
+
+#2.3 plot the data to observe the trend and detect anomalies
+GeoPlot(GeoTestData_PreTest,
+        Y_id = "Y",
+        time_id = "time",
+        location_id = "location")
+        
+#2.4 Power Analysis ( Obiettivo: determinare qual è il minimum sample size for this test)
+
+#2.5 Numero di Geos ( Obiettivo: quanti market inseriamo nel nostro test group)
+#alpha is the significance level. Se è 0.1 significa che siamo confident al 90% del risultato di questo test group
+#power is the probability di avere un reale cambiamento statisticamente significante (by default 0.8)
+#per determinare il numero di geos da inserire devi avere un high average power and low L2 imbalance
+
+resultsNum <- NumberLocations(data = GeoTestData_PreTest,
+                              Y_id = "Y",
+                              location_id = "location",
+                              time_id = "time",
+                              n_sim = 500,
+                              treatment_periods = 15,# test lenght will be 15 days, if you are not sure enter a list of possible values
+                              plot = TRUE,
+                              power = 0.8,
+                              alpha = 0.1,
+                              fixed_effects = TRUE,
+                              ProgressBar = TRUE)
+                              
+#2.6 Market Selection: Quali sono i geos che inserisco nel testgroup
+#inserisci in N il numero di market che hai preso dal 2.5
+
+resultsSearch <- GeoLiftPower.search(data = GeoTestData_PreTest,
+                                     treatment_periods = c(15),
+                                     N = c(2,3,4),
+                                     Y_id = "Y",
+                                     location_id = "location",
+                                     time_id = "time",
+                                     top_results = 20,
+                                     alpha = 0.1,
+                                     type = "pValue",
+                                     fixed_effects = TRUE,
+                                     ProgressBar = TRUE)
+                                     
+#2.7 MDE (Minimo effetto rilevabile)
+resultsFind <- GeoLiftPowerFinder(data = GeoTestData_PreTest,
+                                  treatment_periods = c(10,15), #two possible test lenghts
+                                  N = c(2,3,4),
+                                  Y_id = "Y",
+                                  location_id = "location",
+                                  time_id = "time",
+                                  effect_size = seq(0, 0.5, 0.05), #defines the step of possible MDEs
+                                  top_results = 5,
+                                  alpha = 0.1,
+                                  fixed_effects = TRUE,
+                                  ProgressBar = TRUE,
+                                  plot_best = TRUE
+                                   #,parallel = FALSE for windows users: set this parameter (removing the #) if the function does not work
+                                 )
+
+#MDE list of possible results 
+
+head(resultsFind,10)
+
+
+
+
+
