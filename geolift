@@ -1,3 +1,6 @@
+##Usa questa modalità di GeoLift se vuoi testare nuovi canali o campagne, come fa vedere nel Walkthrough. Se invece vogliamo validare attraverso un GeoLift l'incremento di CPA che possiamo avere allora Facebook consiglia di utilizzare un GeoLift Negative and keep investment away from the treatment. 
+##That way you keep on running media in the majority of the locations that you would like to test and you determine what is the opportunity cost of running ads for that channel in the treatment 
+
 ##1 install devtools and ausgynth and GeoLift
 install.packages("devtools", repos='http://cran.us.r-project.org')
 devtools::install_github("ebenmichael/augsynth")
